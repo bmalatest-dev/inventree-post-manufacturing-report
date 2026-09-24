@@ -1,0 +1,11 @@
+<!doctype html><html><head><title>Post-Manufacturing Report</title></head>
+<body style="font-family:Arial,sans-serif;max-width:900px;margin:30px auto">
+<h1>Post-Manufacturing Report</h1>
+<h2>BO {{ build.reference }} — {{ build.part.IPN|default:build.part.name }}</h2>
+<p>Select the report type for this Build Order:</p>
+<ul>
+<li><a href="?type=pcba">PCBA / Assembled Board</a></li>
+<li><a href="?type=mechanical">Mechanical / Subassembly</a></li>
+<li><a href="?type=final_product">Final Product / SDR</a></li>
+</ul>
+</body></html>

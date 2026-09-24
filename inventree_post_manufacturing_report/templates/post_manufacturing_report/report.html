@@ -1,0 +1,53 @@
+<!doctype html><html><head><title>Post-Manufacturing Report</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:1250px;margin:24px auto;color:#222} table{border-collapse:collapse;width:100%;margin:10px 0 24px}
+th,td{border:1px solid #ccc;padding:6px;font-size:13px;vertical-align:top} th{background:#eee;text-align:left}
+.warn{background:#fff3cd;padding:10px;margin:8px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{font-weight:bold} input[type=text],textarea{width:100%;box-sizing:border-box;padding:6px}.muted{color:#666}.badge{padding:2px 6px;border:1px solid #aaa;border-radius:4px}
+</style></head><body>
+<h1>Post-Manufacturing Report <span class="badge">v0.1.0</span></h1>
+<h2>BO {{ build.reference }} — {{ build.part.IPN|default:build.part.name }}</h2>
+<p><b>Report type:</b> {{ report_type }}</p>
+{% for w in data.warnings %}<div class="warn">{{ w }}</div>{% endfor %}
+
+<h3>Run Summary</h3>
+<table><tr><th>Target</th><th>Completed</th><th>Start</th><th>Target Date</th><th>Actual Completion</th></tr>
+<tr><td>{{ data.build.target_qty }}</td><td>{{ data.build.completed_qty }}</td><td>{{ data.build.start_date }}</td><td>{{ data.build.target_date }}</td><td>{{ data.build.completion_date }}</td></tr></table>
+
+{% if data.children %}
+<h3>Child Build Reports</h3><table><tr><th>BO</th><th>Part</th><th>Qty</th><th>Report</th></tr>
+{% for c in data.children %}<tr><td>{{ c.reference }}</td><td>{{ c.part_ipn }}</td><td>{{ c.target_qty }}</td><td>{{ c.report_state }}{% if c.report_revision %} r{{ c.report_revision }}{% endif %}</td></tr>{% endfor %}</table>
+{% endif %}
+
+<h3>BOM</h3><table><tr><th>IPN</th><th>Name</th><th>Qty / build</th><th>Assembly</th><th>Purchaseable</th></tr>
+{% for r in data.bom %}<tr><td>{{ r.ipn }}</td><td>{{ r.name }}</td><td>{{ r.quantity }}</td><td>{{ r.assembly }}</td><td>{{ r.purchaseable }}</td></tr>{% empty %}<tr><td colspan=5>No BOM lines discovered.</td></tr>{% endfor %}</table>
+
+<form method="post">{% csrf_token %}<input type="hidden" name="report_type" value="{{ report_type }}">
+<h3>Candidate PO Lines — select those applicable to this manufacturing run</h3>
+<p class="muted">This is deliberately operator-confirmed so an original delayed supplier PO can remain part of the run even if the ultimately-consumed stock came from a replacement PO.</p>
+<table><tr><th>Use</th><th>PO</th><th>Supplier</th><th>Part</th><th>Qty</th><th>Start</th><th>Target</th><th>Price</th><th>Role</th></tr>
+{% for p in data.candidate_pos %}<tr>
+<td><input type="checkbox" name="selected_po" value="{{ p.line_id }}" {% if p.line_id|stringformat:"s" in selected_ids %}checked{% endif %}></td>
+<td>{{ p.po_reference }}</td><td>{{ p.supplier }}</td><td>{{ p.ipn }}</td><td>{{ p.quantity }}</td><td>{{ p.po_start }}</td><td>{{ p.po_target }}</td><td>{{ p.purchase_price }} {{ p.currency }}</td>
+<td><select name="po_role_{{ p.line_id }}"><option>Original</option><option>Replacement</option><option>Supplemental</option><option>Other</option></select></td>
+</tr>{% empty %}<tr><td colspan=9>No candidate PO lines discovered.</td></tr>{% endfor %}</table>
+
+<h3>Manual Manufacturing Record</h3>
+<div class="grid">
+<div><label>Responsible individual</label><input name="responsible_individual" type="text"></div>
+<div><label>Manufacturing trigger / Redmine issue</label><input name="manufacturing_trigger" type="text"></div>
+<div><label>Preliminary package location</label><input name="preliminary_package_location" type="text"></div>
+<div><label>Final Gerber/package location</label><input name="final_package_location" type="text"></div>
+<div><label>PV → Fab package location</label><input name="pv_to_fab_package_location" type="text"></div>
+<div><label>PV → Assembly package location</label><input name="pv_to_assembly_package_location" type="text"></div>
+<div><label>Fab → PV package location</label><input name="fab_to_pv_package_location" type="text"></div>
+<div><label>Packing list/document locations</label><input name="packing_list_locations" type="text"></div>
+</div>
+<p><label>Significant manufacturing/supplier events</label><textarea name="significant_events" rows=5></textarea></p>
+<p><label>Notes / explanations</label><textarea name="notes" rows=5></textarea></p>
+
+<h3>V0.1.0 Integration Status</h3>
+<p class="muted">The snapshot schema already reserves test history, rework, ASR, and CAD/USD cost sections. Automatic population of those fields is intentionally deferred until their exact production InvenTree records are validated during testing.</p>
+<button name="action" value="save" type="submit">Save Draft</button>
+<button name="action" value="finalize" type="submit">Finalize & Generate PDF</button>
+</form></body></html>

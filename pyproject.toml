@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "inventree-post-manufacturing-report"
+version = "0.1.0"
+description = "Post-manufacturing reports for InvenTree Build Orders"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{name = "Per Vices Corporation"}]
+dependencies = ["reportlab>=4.0"]
+
+[project.entry-points."inventree_plugins"]
+PostManufacturingReportPlugin = "inventree_post_manufacturing_report.plugin:PostManufacturingReportPlugin"
+
+[tool.setuptools.packages.find]
+include = ["inventree_post_manufacturing_report*"]
+
+[tool.setuptools.package-data]
+inventree_post_manufacturing_report = ["templates/post_manufacturing_report/*.html", "static/*.js"]

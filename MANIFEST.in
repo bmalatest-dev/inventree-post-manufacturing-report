@@ -1,0 +1,2 @@
+recursive-include inventree_post_manufacturing_report/templates *.html
+recursive-include inventree_post_manufacturing_report/static *.js
